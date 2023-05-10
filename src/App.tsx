@@ -1,56 +1,82 @@
-import { 
-    Refine,
-    GitHubBanner, 
-    WelcomePage,
-    Authenticated, 
-} from '@refinedev/core';
-import { RefineKbar, RefineKbarProvider } from "@refinedev/kbar";
+import { Refine } from "@refinedev/core";
+import {
+    ThemedLayoutV2,
+    notificationProvider,
+    ErrorComponent,
+    RefineThemes,
+} from "@refinedev/antd";
+import routerBindings, {
+    NavigateToResource,
+    UnsavedChangesNotifier,
+} from "@refinedev/react-router-v6";
+import dataProvider from "@refinedev/simple-rest";
+import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
+import { AntdInferencer } from "@refinedev/inferencer/antd";
 
-import { AuthPage,ErrorComponent
-,notificationProvider
-,ThemedLayoutV2} from '@refinedev/antd';
+import { ConfigProvider } from "antd";
 import "@refinedev/antd/dist/reset.css";
 
-import { BrowserRouter, Route, Routes, Outlet } from "react-router-dom";
-import routerBindings, { NavigateToResource, CatchAllNavigate, UnsavedChangesNotifier } from "@refinedev/react-router-v6";
-import dataProvider from "@refinedev/simple-rest";
-import { ColorModeContextProvider } from "./contexts/color-mode";
-import { Header } from "./components/header";
-
-
-
-
-
-function App() {
-    
-
-    
-    
+const App: React.FC = () => {
     return (
         <BrowserRouter>
-        <GitHubBanner />
-        <RefineKbarProvider>
-            <ColorModeContextProvider>
-            <Refine notificationProvider={notificationProvider}
-routerProvider={routerBindings}
-dataProvider={dataProvider("https://api.fake-rest.refine.dev")} 
-                options={{
-                    syncWithLocation: true,
-                    warnWhenUnsavedChanges: true,
-                }}
-            >
-
-
+            <ConfigProvider theme={RefineThemes.Blue}>
+                <Refine
+                    routerProvider={routerBindings}
+                    dataProvider={dataProvider(
+                        "https://api.fake-rest.refine.dev",
+                    )}
+                    notificationProvider={notificationProvider}
+                    resources={[
+                        {
+                            name: "blog_posts",
+                            list: "/blog-posts",
+                            show: "/blog-posts/show/:id",
+                            create: "/blog-posts/create",
+                            edit: "/blog-posts/edit/:id",
+                        },
+                    ]}
+                    options={{
+                        syncWithLocation: true,
+                        warnWhenUnsavedChanges: true,
+                    }}
+                >
                     <Routes>
-                        <Route index element={<WelcomePage />} />
+                        <Route
+                            element={
+                                <ThemedLayoutV2>
+                                    <Outlet />
+                                </ThemedLayoutV2>
+                            }
+                        >
+                            <Route
+                                index
+                                element={
+                                    <NavigateToResource resource="blog_posts" />
+                                }
+                            />
+                            <Route path="blog-posts">
+                                <Route index element={<AntdInferencer />} />
+                                <Route
+                                    path="show/:id"
+                                    element={<AntdInferencer />}
+                                />
+                                <Route
+                                    path="edit/:id"
+                                    element={<AntdInferencer />}
+                                />
+                                <Route
+                                    path="create"
+                                    element={<AntdInferencer />}
+                                />
+                            </Route>
+                            <Route path="*" element={<ErrorComponent />} />
+                        </Route>
                     </Routes>
-                <RefineKbar />
-                <UnsavedChangesNotifier />
-            </Refine>
-            </ColorModeContextProvider>
-        </RefineKbarProvider>
+                    <UnsavedChangesNotifier />
+                </Refine>
+            </ConfigProvider>
         </BrowserRouter>
-      );
+    );
 };
 
 export default App;
